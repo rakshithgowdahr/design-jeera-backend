@@ -8,6 +8,7 @@ const mongoose = require('mongoose')
 const cookieSession = require('cookie-session')
 const bodyParser = require("body-parser")
 const passport = require('passport');
+const path = require('path');
 // starting out express server and allow cors
 const app = express();
 app.use(bodyParser.json())
@@ -24,7 +25,8 @@ app.use(cookieSession({
 // Initialize passport
 app.use(passport.initialize());
 app.use(passport.session());
-mongoose.connect(keys.mongoConnectString, { useNewUrlParser: true, useUnifiedTopology: true }, () => {
+mongoose.connect(keys.mongoConnectString, { useNewUrlParser: true, useUnifiedTopology: true }, (er) => {
+   if(er) throw er;
    console.log("connected to mongodb")
 })
 app.post("/api/pay", async (req, res) => {
@@ -67,7 +69,11 @@ app.post('/api/upload/image', (req, res, next) => {
 })
 app.get('/test', (req, res, next) => {
    res.send("test done")
-})
+});
+app.use(express.static('client/build'));
+app.get("*", (req, res)=>{
+   res.sendFile(path.resolve(__dirname, "client", "build", "index.html"));
+});
 const httpsServer = http.createServer(app);
 // const httpsServer = http.createServer( {}, app);
 httpsServer.listen(port, () => {
